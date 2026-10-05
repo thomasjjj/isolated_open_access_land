@@ -7,6 +7,8 @@ Find **CRoW access-land sites with no evidenced walking connection to the public
 
 This is a screening tool. A missing mapped connection does not establish that no lawful entrance exists. Access land can be privately owned; the output concerns public access rights, not ownership.
 
+![isle-of-wight-candidates.png](reports/maps/isle-of-wight-candidates.png)
+
 ## Install and try the example
 
 Python 3.12+ and [uv](https://docs.astral.sh/uv/) are required. On Windows, run from this directory:
