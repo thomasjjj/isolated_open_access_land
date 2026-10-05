@@ -4,9 +4,25 @@ from __future__ import annotations
 
 import os
 import shutil
+import time
 from pathlib import Path
 
 from .common import atomic_json, read_json
+
+DIRECTORY_REPLACE_TIMEOUT = 5
+
+
+def replace_directory(source, target):
+    """Keep publication atomic while allowing short Windows sharing locks to clear."""
+    deadline = time.monotonic() + DIRECTORY_REPLACE_TIMEOUT
+    while True:
+        try:
+            os.replace(source, target)
+            return
+        except PermissionError as exc:
+            if getattr(exc, "winerror", None) not in {5, 32, 33} or time.monotonic() >= deadline:
+                raise
+            time.sleep(0.1)
 
 
 def preserve_completed(output):
@@ -26,7 +42,7 @@ def preserve_completed(output):
                 shutil.copy2(item, scratch / item.name)
             elif item.name == "map":
                 shutil.copytree(item, scratch / item.name, dirs_exist_ok=True)
-        os.replace(scratch, target)
+        replace_directory(scratch, target)
     return target
 
 
@@ -44,7 +60,7 @@ def publish_completed(working, output):
     if not target.exists():
         scratch = target.with_name(target.name + ".partial")
         shutil.copytree(working, scratch, dirs_exist_ok=True)
-        os.replace(scratch, target)
+        replace_directory(scratch, target)
     for item in target.rglob("*"):
         if not item.is_file():
             continue

@@ -28,10 +28,13 @@ uv run access-islands research --county "Isle of Wight"
 uv run access-islands research --county "Devon"
 uv run access-islands research --region cumbria
 uv run access-islands research --region dorset
+uv run access-islands research --region cheltenham-gloucester
 uv run access-islands regions
 ```
 
 Each completed area gets a named Markdown report in **`reports/`**, two offline PNG maps in `reports/maps/`, and an immutable package in `outputs/regions/<area>/runs/<analysis-signature>/`. County-root filenames are convenience copies of the latest validated package. Start with [the report index](reports/README.md). Reports link the interactive map, full, candidate and permissive-access CSVs, GIS evidence and review samples. Reports are written only after processing and automated export validation complete; processing completion does not imply manual verification of access rights. Dorset covers Dorset Council (E06000059), excluding Bournemouth, Christchurch and Poole.
+
+The `cheltenham-gloucester` preset covers Cheltenham borough and Gloucester city plus 10 km of surrounding countryside, using the Gloucestershire OSM extract. Its report separates sites intersecting those districts from the additional surrounding sites. Custom regional configurations can set `study_buffer_m` to expand their authority boundaries. This changes which land is studied; `analysis.context_buffer_m` controls the additional route-search context. An explicit `--bbox` clips the expanded study boundary.
 
 Existing downloads, cleaned land and the site catalogue are reused. Regional runs extract nearby routes **before** constructing their networks, with a 20 km surrounding buffer by default. They retain full cross-border land sites and stable IDs. Unresolved possible connections reaching the context edge are flagged `regional_context_incomplete`; when the shared route coverage permits, the buffer expands up to 80 km. Private routes remain excluded from the walking graph.
 

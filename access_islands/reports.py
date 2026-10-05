@@ -115,6 +115,9 @@ def county_report(output, reports):
     preserve_previous_report(reports, path, slug, manifest["signature"], county_root, presentation_signature)
     overview, candidates_map = maps / f"{slug}-overview.png", maps / f"{slug}-candidates.png"
     scope_label = "Dorset Council area, excluding BCP" if region["authority_codes"] == ["E06000059"] else None
+    study_buffer_m = region.get("study_buffer_m", 0)
+    if study_buffer_m:
+        scope_label = f"Districts + {study_buffer_m / 1000:g} km of surrounding countryside"
     plot_map(sites, study, overview, name, context=context, scope_label=scope_label)
     plot_map(
         sites, study, candidates_map, name, candidates_only=True, context=context, scope_label=scope_label
@@ -185,6 +188,14 @@ def county_report(output, reports):
             else []
         ),
         f"Study authorities: {', '.join(region['authority_codes']) or 'custom boundary'}.",
+        *(
+            [
+                f"Study extent: the named authority boundaries plus {study_buffer_m / 1000:g} km of surrounding countryside. "
+                "The route-search context below is additional to this study extent."
+            ]
+            if study_buffer_m
+            else []
+        ),
         f"Surrounding context buffer requested: {region['buffer_m'] / 1000:g} km. "
         f"Limited by source extract coverage: {'yes' if region['context_limited_by_source'] else 'no'}.",
         "",
@@ -194,9 +205,27 @@ def county_report(output, reports):
         "| --- | ---: |",
     ]
     lines.extend(f"| {status.replace('_', ' ')} | {counts.get(status, 0)} |" for status in COLOURS)
+    lines.append(f"| Total | {len(sites)} |")
+    if study_buffer_m:
+        core_mask = sites.site_id.isin(region["core_site_ids"])
+        lines.extend(
+            [
+                "",
+                "### Districts and surrounding countryside",
+                "",
+                "Complete sites intersecting the named districts are counted in the district group; the surrounding group contains the additional sites selected by the study buffer.",
+                "",
+                "| Classification | Named districts | Additional surrounding sites |",
+                "| --- | ---: | ---: |",
+                *[
+                    f"| {status.replace('_', ' ')} | {int((core_mask & sites.status.eq(status)).sum())} | {int((~core_mask & sites.status.eq(status)).sum())} |"
+                    for status in COLOURS
+                ],
+                f"| Total | {int(core_mask.sum())} | {int((~core_mask).sum())} |",
+            ]
+        )
     lines.extend(
         [
-            f"| Total | {len(sites)} |",
             "",
             f"Access-land area in reported complete sites: {sites.area_ha.sum():,.2f} ha.",
             f"Sites containing registered common land: {manifest.get('registered_common_sites', 'not recorded')}. "

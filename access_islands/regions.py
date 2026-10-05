@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import math
 import os
 import re
 import time
@@ -31,6 +32,12 @@ from .common import (
 
 LOG = logging.getLogger(__name__)
 PRESETS = {
+    "cheltenham-gloucester": {
+        "name": "Cheltenham and Gloucester",
+        "authorities": ["E07000078", "E07000081"],
+        "osm_slug": "gloucestershire",
+        "study_buffer_m": 10000,
+    },
     "dorset": {"name": "Dorset", "authorities": ["E06000059"], "osm_slug": "dorset"},
     "isle-of-wight": {"name": "Isle of Wight", "authorities": ["Isle of Wight"], "osm_slug": "isle-of-wight"},
     "devon": {"name": "Devon", "authorities": ["Devon"], "osm_slug": "devon"},
@@ -138,19 +145,26 @@ def resolve_region(root, config, county=None, region=None, bbox=None, name=None)
                 root / "prepared" / "land.gpkg", layer=role, where=f"code IN ({values})"
             )
             geometries.extend(frame.geometry)
-    geometry = shapely.union_all(geometries) if geometries else box(*bbox)
+    label = name or spec.get("name") or " + ".join(names) or "Custom region"
+    preset = presets.get(slugify(label), {})
+    spec = {**preset, **spec}
+    study_buffer_m = float(spec.get("study_buffer_m", 0))
+    if not math.isfinite(study_buffer_m) or study_buffer_m < 0:
+        raise ValueError("Study buffer must be finite and nonnegative")
+    core = shapely.union_all(geometries) if geometries else box(*bbox)
+    geometry = core.buffer(study_buffer_m) if study_buffer_m else core
     if bbox and geometries:
         geometry = geometry.intersection(box(*bbox))
     if geometry.is_empty:
         raise ValueError("Study area is empty")
-    label = name or spec.get("name") or " + ".join(names) or "Custom region"
-    preset = presets.get(slugify(label), {})
-    spec = {**preset, **spec}
     return {
         **spec,
         "name": label,
         "slug": slugify(label),
         "authority_codes": sorted(set(codes)),
+        "authority_names": names,
+        "study_buffer_m": study_buffer_m,
+        "core_geometry": core,
         "geometry": geometry,
         "bbox": list(geometry.bounds),
     }
@@ -389,6 +403,11 @@ def prepare_region(config, root, spec, buffer_m, progress, refresh=False):
         "name": spec["name"],
         "slug": spec["slug"],
         "authority_codes": spec["authority_codes"],
+        "authority_names": spec.get("authority_names", []),
+        "study_buffer_m": spec.get("study_buffer_m", 0),
+        "core_site_ids": selected.loc[
+            selected.geometry.intersection(spec.get("core_geometry", study)).area.gt(0), "site_id"
+        ].tolist(),
         "site_ids": selected.site_id.tolist(),
         "buffer_m": buffer_m,
         "context_limited_by_source": not context.equals(extent),

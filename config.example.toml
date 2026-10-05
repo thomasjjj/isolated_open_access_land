@@ -50,6 +50,7 @@ include_section15 = true  # separate statutory access inventory; no GB route rei
 # name = "My region"
 # authorities = ["Devon", "Torbay", "Plymouth"]
 # osm_slug = "devon"  # Geofabrik England regional extract
+# study_buffer_m = 10000  # include sites in surrounding countryside; separate from route context
 
 # Alternatively use a local PBF and its actual coverage polygon:
 # [regions.my_region.osm]

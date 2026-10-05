@@ -23,6 +23,61 @@ def test_reference_command_forwards_explicit_refresh(tmp_path, monkeypatch):
     assert calls == [(tmp_path.resolve(), True)]
 
 
+def test_study_buffer_selects_surrounding_land_and_reports_the_distinction(tmp_path):
+    root = fixture_inputs(
+        tmp_path,
+        [box(2, 2, 8, 8), box(40, 2, 60, 12), box(1000, 0, 1020, 10)],
+        [(LineString([(-50, -50), (150, -50)]), "inferred", True, "osm:1", "osm:2")],
+    )
+    boundary = gpd.GeoDataFrame(
+        [{"code": "E00000001", "name": "Test area", "geometry": box(0, 0, 10, 10)}], crs=CRS
+    )
+    for layer in ["counties", "councils"]:
+        write_layer(boundary, root / "prepared/land.gpkg", layer)
+    config = {
+        "regions": {
+            "local": {"name": "Local surroundings", "authorities": ["Test area"], "study_buffer_m": 100}
+        },
+        "analysis": {"context_buffer_m": 100, "max_context_buffer_m": 100},
+    }
+    spec = resolve_region(root, config, region="local")
+    assert spec["core_geometry"].equals(box(0, 0, 10, 10))
+    assert spec["geometry"].equals(spec["core_geometry"].buffer(100))
+    result = research(config, root, tmp_path / "outputs", tmp_path / "reports", spec)
+    assert result["complete"]
+    assert result["sites"] == 2
+    region = result["scope"]["region"]
+    assert region["study_buffer_m"] == 100
+    assert len(region["core_site_ids"]) == 1
+    report = Path(result["county_report"]).read_text(encoding="utf-8")
+    assert "plus 0.1 km of surrounding countryside" in report
+    assert "| Total | 1 | 1 |" in report
+    assert "| Total | 2 |" in report
+
+
+@pytest.mark.parametrize("buffer", [-1, float("nan"), float("inf")])
+def test_study_buffer_rejects_invalid_distances(tmp_path, buffer):
+    root = fixture_inputs(
+        tmp_path,
+        [box(0, 0, 10, 10)],
+        [(LineString([(-50, -50), (150, -50)]), "inferred", True, "osm:1", "osm:2")],
+    )
+    config = {"regions": {"local": {"authorities": ["Test area"], "study_buffer_m": buffer}}}
+    with pytest.raises(ValueError, match="Study buffer"):
+        resolve_region(root, config, region="local")
+
+
+def test_explicit_bounds_clip_an_expanded_study(tmp_path):
+    root = fixture_inputs(
+        tmp_path,
+        [box(0, 0, 10, 10)],
+        [(LineString([(-50, -50), (150, -50)]), "inferred", True, "osm:1", "osm:2")],
+    )
+    config = {"regions": {"local": {"authorities": ["Test area"], "study_buffer_m": 100}}}
+    spec = resolve_region(root, config, region="local", bbox=[0, 0, 100, 100])
+    assert spec["geometry"].equals(box(0, 0, 100, 100))
+
+
 def test_regional_inputs_exclude_distant_routes_and_reuse_cache(tmp_path):
     root = fixture_inputs(
         tmp_path,
