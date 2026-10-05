@@ -1,5 +1,6 @@
 # England access islands
 
+Map
 ![dorset-candidates.png](reports/maps/dorset-candidates.png)
 
 Find **CRoW access-land sites with no evidenced walking connection to the public road network**. The pipeline uses official land boundaries, council-derived rights of way and tagged OpenStreetMap routes. It generates a complete site inventory, a candidate shortlist, GIS evidence and a local interactive map.
