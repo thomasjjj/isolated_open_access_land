@@ -148,7 +148,18 @@ CSV coordinates are representative points inside their sites, not centroids that
 
 The map works when opened directly as a local file. Leaflet and clustering scripts ship with the application and are copied alongside the outputs with their licences; polygon partitions load as local scripts. Export needs no network connection. Only the optional OSM basemap needs internet. Classification geometry remains full resolution in the GeoPackage; map polygons are simplified for display.
 
-See [source decisions and the Dorset pilot](RESEARCH_SOURCES.md) for OS data, common-land interpretation and council desk-review sources. Earlier county reports and their map images are retained under `reports/history/<area>/<signature>/` when analysis changes. Their links point to completed analysis packages. Review outcomes for changed IDs remain in history and are not automatically reassigned.
+County report images use an atlas layout with no coordinate axes or grid: muted roads, water, woodland and settlement labels support vivid candidate polygons. Candidate graphics include close-up panels for the three largest sites and numbered references to the report table. Both 2,800 × 2,000 PNGs and scalable SVGs are saved in `reports/maps/`.
+
+The detailed static basemap is assembled from the existing regional OSM PBF and cached in its adjacent `cartography/` directory. It requires no tile service, API key or extra download and is separate from route preparation. Basemap paths show context only; their appearance does not establish a right of way. If a suitable local county extract is unavailable, the map uses an explicitly labelled outline fallback. `reports/maps/<area>-style.json` records the basemap source hash, feature counts and presentation signature.
+
+Regenerate the graphics and Markdown from completed analysis without running research again:
+
+```powershell
+uv run access-islands report --output-dir outputs/regions/dorset --reports-dir reports
+uv run access-islands report --output-dir outputs/regions/isle-of-wight --reports-dir reports
+```
+
+See [source decisions and the Dorset pilot](RESEARCH_SOURCES.md) for OS data, common-land interpretation and council desk-review sources. Earlier county reports and their map images are retained under `reports/history/<area>/<signature>/` when analysis changes. Visual revisions with the same analysis are archived in a `presentation-<signature>` subdirectory. Their links point to completed analysis packages. Review outcomes for changed IDs remain in history and are not automatically reassigned.
 
 Exit codes: `0` successful; `1` failed stage; `2` partial analysis containing rejected land components; `130` interrupted. A failed stage writes `last_failure.json`. Inspect the run manifest and component accounting before treating a run as complete.
 

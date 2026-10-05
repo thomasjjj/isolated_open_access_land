@@ -1,6 +1,6 @@
 # Dorset — access-land research report
 
-Generated: 2026-10-05T16:57:43.557357+00:00
+Generated: 2026-10-05T17:56:41.034818+00:00
 
 Processing and automated export validation are complete. These are screening findings. Recorded review outcomes: 20; blank reviews remain outstanding.
 
@@ -33,6 +33,10 @@ Sites crossing the study boundary retain their full geometry and stable IDs. The
 ![Dorset: screening candidates](maps/dorset-candidates.png)
 
 Map dots keep small sites visible; coloured polygons show their mapped extent. Candidate numbers correspond to the table below.
+
+The atlas graphics include close-up panels for the largest candidates. Roads, woodland, water and settlement names come from the cached OSM extract. Basemap paths are context and do not establish access rights.
+
+Vector graphics for sharing or printing: [overview SVG](maps/dorset-overview.svg) · [candidate SVG](maps/dorset-candidates.svg).
 
 [Open the interactive map](../outputs/regions/dorset/runs/b77787ca7ea262ea7d2adb9ec3d24311314ed4df4a95b5af8b3770c2cdc0f07e/map/index.html) to search all sites, inspect boundaries and follow site links.
 

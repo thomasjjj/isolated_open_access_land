@@ -1,6 +1,6 @@
 # Isle of Wight — access-land research report
 
-Generated: 2026-10-05T16:51:15.769014+00:00
+Generated: 2026-10-05T17:55:48.049277+00:00
 
 Processing and automated export validation are complete. These are screening findings. Recorded review outcomes: 0; blank reviews remain outstanding.
 
@@ -33,6 +33,10 @@ Sites crossing the study boundary retain their full geometry and stable IDs. The
 ![Isle of Wight: screening candidates](maps/isle-of-wight-candidates.png)
 
 Map dots keep small sites visible; coloured polygons show their mapped extent. Candidate numbers correspond to the table below.
+
+The atlas graphics include close-up panels for the largest candidates. Roads, woodland, water and settlement names come from the cached OSM extract. Basemap paths are context and do not establish access rights.
+
+Vector graphics for sharing or printing: [overview SVG](maps/isle-of-wight-overview.svg) · [candidate SVG](maps/isle-of-wight-candidates.svg).
 
 [Open the interactive map](../outputs/regions/isle-of-wight/runs/3408816bdcb6534a8fa57a89dd8c21ab5c14f314e9d783ae439199b3b15716a3/map/index.html) to search all sites, inspect boundaries and follow site links.
 

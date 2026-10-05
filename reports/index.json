@@ -2,7 +2,7 @@
   "isle-of-wight": {
     "name": "Isle of Wight",
     "report": "Isle of Wight.md",
-    "completed": "2026-10-05T16:51:15.769014+00:00",
+    "completed": "2026-10-05T17:55:48.049277+00:00",
     "sites": 383,
     "counts": {
       "uncertain": 305,
@@ -406,12 +406,13 @@
       "context_limited_by_source": true,
       "context_sha256": "f0b2c195d8be701508df0e322c037d373c674a2d0fbef30c7335bc55c04c91fa"
     },
-    "analysis_signature": "3408816bdcb6534a8fa57a89dd8c21ab5c14f314e9d783ae439199b3b15716a3"
+    "analysis_signature": "3408816bdcb6534a8fa57a89dd8c21ab5c14f314e9d783ae439199b3b15716a3",
+    "presentation_signature": "3203d2a974267488a5ea3b0d34608221e042d790e5f69f99a41762a087ce711a"
   },
   "dorset": {
     "name": "Dorset",
     "report": "Dorset.md",
-    "completed": "2026-10-05T16:57:43.557357+00:00",
+    "completed": "2026-10-05T17:56:41.034818+00:00",
     "sites": 993,
     "counts": {
       "uncertain": 598,
@@ -1425,6 +1426,7 @@
       "context_limited_by_source": true,
       "context_sha256": "d6b08277a1aa16ae0b2593e61b84cbbdeab0e05960a049ae84183d10cc423f3e"
     },
-    "analysis_signature": "b77787ca7ea262ea7d2adb9ec3d24311314ed4df4a95b5af8b3770c2cdc0f07e"
+    "analysis_signature": "b77787ca7ea262ea7d2adb9ec3d24311314ed4df4a95b5af8b3770c2cdc0f07e",
+    "presentation_signature": "8ac2c65db907a0944d3d3817fe8358567bd617011bd0891559b5dec035d56544"
   }
 }

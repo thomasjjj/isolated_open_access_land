@@ -9,21 +9,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
-import matplotlib
 import pandas as pd
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import pyogrio
 from filelock import FileLock
-from matplotlib.lines import Line2D
 
-from .common import atomic_json, fingerprint, now, read_json
+from .cartography import COLOURS, STYLE_VERSION, load_context, plot_map
+from .common import atomic_json, code_signature, fingerprint, now, read_json
 from .export import atomic_text
-
-COLOURS = {"likely_access_island": "#c04c22", "uncertain": "#b68a0c", "access_evidenced": "#2d7861"}
-COLOURS["permissive_access_evidenced"] = "#4978a8"
-SMALL_COLOUR = "#79858a"
 
 
 def ordered_candidates(sites):
@@ -49,17 +41,23 @@ def relative_link(target, parent):
     return quote(Path(os.path.relpath(target, parent)).as_posix(), safe="/.-_")
 
 
-def preserve_previous_report(reports, path, slug, signature, county_root):
+def preserve_previous_report(reports, path, slug, signature, county_root, presentation_signature=None):
     previous = read_json(reports / "index.json", {}).get(slug, {})
     old_signature = previous.get("analysis_signature")
-    if not path.exists() or not old_signature or old_signature == signature:
+    old_presentation = previous.get("presentation_signature")
+    same_presentation = presentation_signature is None or old_presentation == presentation_signature
+    if not path.exists() or not old_signature or (old_signature == signature and same_presentation):
         return
     history = reports / "history" / slug / old_signature
+    if old_signature == signature:
+        history = history / ("presentation-" + (old_presentation or "legacy"))
     archived = history / path.name
     if archived.exists():
         return
     history.mkdir(parents=True, exist_ok=True)
-    for image in (reports / "maps").glob(f"{slug}-*.png"):
+    for image in (reports / "maps").glob(f"{slug}-*"):
+        if not image.is_file() or image.suffix not in {".png", ".svg", ".json"}:
+            continue
         (history / "maps").mkdir(exist_ok=True)
         shutil.copy2(image, history / "maps" / image.name)
 
@@ -80,83 +78,6 @@ def preserve_previous_report(reports, path, slug, signature, county_root):
         return "](" + urlunsplit(("", "", relative_link(target, history), parts.query, parts.fragment)) + ")"
 
     atomic_text(archived, re.sub(r"\]\(([^)]+)\)", rewrite, path.read_text(encoding="utf-8")))
-
-
-def plot_map(sites, study, path, name, candidates_only=False):
-    fig, ax = plt.subplots(figsize=(11, 8), constrained_layout=True)
-    fig.set_layout_engine("constrained", rect=(0, 0.045, 1, 0.955))
-    ax.set_facecolor("#e9f1f5")
-    study.plot(ax=ax, color="#f7f5ed", edgecolor="#627471", linewidth=1.2)
-    if len(sites):
-        sites.plot(ax=ax, facecolor="#d2d8cf", edgecolor="#b0b9b0", linewidth=0.3)
-        shown = sites.loc[sites.status.eq("likely_access_island")] if candidates_only else sites
-        for status, colour in COLOURS.items():
-            subset = shown.loc[shown.status.eq(status)]
-            if status == "uncertain":
-                subset = subset.loc[~subset.reasons.str.contains("very_small_site_geometry")]
-            if len(subset):
-                subset.plot(ax=ax, color=colour, edgecolor=colour, alpha=0.65, linewidth=0.7)
-                # Small parcels remain visible at county scale; polygon outlines retain real extents.
-                subset.geometry.representative_point().plot(ax=ax, color=colour, markersize=13, alpha=0.8)
-        if not candidates_only:
-            small = shown.loc[
-                shown.status.eq("uncertain") & shown.reasons.str.contains("very_small_site_geometry")
-            ]
-            if len(small):
-                small.geometry.representative_point().plot(
-                    ax=ax, color=SMALL_COLOUR, markersize=4, alpha=0.55
-                )
-        if candidates_only:
-            labelled = []
-            bounds = study.total_bounds
-            separation = max(bounds[2] - bounds[0], bounds[3] - bounds[1]) * 0.03
-            offsets = [(5, 5), (8, -12), (-18, 8), (-20, -14), (6, 18)]
-            for number, row in enumerate(ordered_candidates(shown).head(25).itertuples(), 1):
-                point = row.geometry.representative_point()
-                neighbours = sum(point.distance(previous) < separation for previous in labelled)
-                labelled.append(point)
-                ax.annotate(
-                    str(number),
-                    (point.x, point.y),
-                    xytext=offsets[neighbours % len(offsets)],
-                    textcoords="offset points",
-                    fontsize=8,
-                    bbox={"facecolor": "white", "alpha": 0.7, "edgecolor": "none", "pad": 0.5},
-                )
-    west, south, east, north = study.total_bounds
-    if len(sites):
-        sw, ss, se, sn = sites.total_bounds
-        west, south, east, north = min(west, sw), min(south, ss), max(east, se), max(north, sn)
-    margin = max(east - west, north - south) * 0.04 + 100
-    ax.set_xlim(west - margin, east + margin)
-    ax.set_ylim(south - margin, north + margin)
-    ax.set_aspect("equal")
-    ax.set_title(
-        f"{name}: {'screening candidates' if candidates_only else 'statutory access land'}", fontsize=16
-    )
-    handles = [
-        Line2D([0], [0], color=c, marker="o", linewidth=1, label=s.replace("_", " "))
-        for s, c in COLOURS.items()
-    ]
-    if not candidates_only and sites.reasons.str.contains("very_small_site_geometry").any():
-        handles.append(
-            Line2D([0], [0], color=SMALL_COLOUR, marker="o", linewidth=0, label="very small geometry: review")
-        )
-    ax.legend(handles=handles, loc="upper right", framealpha=0.95)
-    ax.set_xlabel("British National Grid easting (metres)")
-    ax.set_ylabel("British National Grid northing (metres)")
-    ax.ticklabel_format(style="plain", useOffset=False)
-    ax.grid(alpha=0.15)
-    fig.text(
-        0.01,
-        0.005,
-        "Land / PRoW: Natural England, contains OS data. Boundaries: ONS. Routes: © OSM contributors. Screening requires local review.",
-        fontsize=8,
-    )
-    tmp = path.with_suffix(".tmp.png")
-    fig.savefig(tmp, dpi=160, bbox_inches="tight")
-    plt.close(fig)
-    os.replace(tmp, path)
 
 
 def county_report(output, reports):
@@ -181,12 +102,33 @@ def county_report(output, reports):
     filename = re.sub(r'[<>:"/\\|?*]', "-", name).strip(" .") + ".md"
     path = reports / filename
     county_root = output.parent.parent if output.parent.name == "runs" else output
-    preserve_previous_report(reports, path, slug, manifest["signature"], county_root)
     sites = pyogrio.read_dataframe(output / "results.gpkg", layer="sites")
     study = pyogrio.read_dataframe(output / "results.gpkg", layer="study_area")
+    context = load_context(manifest, study, sites)
+    presentation_signature = fingerprint(
+        {
+            "code": code_signature("reports.py", "cartography.py"),
+            "context": context["metadata"],
+            "analysis": manifest["signature"],
+        }
+    )
+    preserve_previous_report(reports, path, slug, manifest["signature"], county_root, presentation_signature)
     overview, candidates_map = maps / f"{slug}-overview.png", maps / f"{slug}-candidates.png"
-    plot_map(sites, study, overview, name)
-    plot_map(sites, study, candidates_map, name, candidates_only=True)
+    scope_label = "Dorset Council area, excluding BCP" if region["authority_codes"] == ["E06000059"] else None
+    plot_map(sites, study, overview, name, context=context, scope_label=scope_label)
+    plot_map(
+        sites, study, candidates_map, name, candidates_only=True, context=context, scope_label=scope_label
+    )
+    atomic_json(
+        maps / f"{slug}-style.json",
+        {
+            "style": STYLE_VERSION,
+            "presentation_signature": presentation_signature,
+            "analysis_signature": manifest["signature"],
+            "basemap": context["metadata"],
+            "geometry_note": "Original analysis is unchanged; map shapes are display representations.",
+        },
+    )
     candidates = ordered_candidates(sites)
     minimum_area = manifest.get("parameters", {}).get("min_candidate_area_m2", 100)
     small_count = int(sites.geometry.area.lt(minimum_area).sum())
@@ -276,6 +218,15 @@ def county_report(output, reports):
             f"![{name}: screening candidates](maps/{candidates_map.name})",
             "",
             "Map dots keep small sites visible; coloured polygons show their mapped extent. Candidate numbers correspond to the table below.",
+            "",
+            "The atlas graphics include close-up panels for the largest candidates. "
+            + (
+                "Roads, woodland, water and settlement names come from the cached OSM extract. Basemap paths are context and do not establish access rights."
+                if context["metadata"].get("available")
+                else "Detailed OSM context was unavailable locally; these graphics use the study outline."
+            ),
+            "",
+            f"Vector graphics for sharing or printing: [overview SVG](maps/{overview.stem}.svg) · [candidate SVG](maps/{candidates_map.stem}.svg).",
             "",
             f"[Open the interactive map]({links['map']}) to search all sites, inspect boundaries and follow site links.",
             "",
@@ -382,11 +333,35 @@ def county_report(output, reports):
     )
     atomic_text(path, "\n".join(lines) + "\n")
     with FileLock(reports / "index.lock", timeout=60):
-        update_index(reports, slug, name, filename, completed, sites, counts, region, manifest, small_count)
+        update_index(
+            reports,
+            slug,
+            name,
+            filename,
+            completed,
+            sites,
+            counts,
+            region,
+            manifest,
+            small_count,
+            presentation_signature,
+        )
     return path
 
 
-def update_index(reports, slug, name, filename, completed, sites, counts, region, manifest, small_count):
+def update_index(
+    reports,
+    slug,
+    name,
+    filename,
+    completed,
+    sites,
+    counts,
+    region,
+    manifest,
+    small_count,
+    presentation_signature=None,
+):
     registry = read_json(reports / "index.json", {})
     registry[slug] = {
         "name": name,
@@ -397,6 +372,7 @@ def update_index(reports, slug, name, filename, completed, sites, counts, region
         "very_small_polygons": small_count,
         "scope": region,
         "analysis_signature": manifest["signature"],
+        "presentation_signature": presentation_signature,
     }
     atomic_json(reports / "index.json", registry)
     index = [
