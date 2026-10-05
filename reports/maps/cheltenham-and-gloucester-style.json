@@ -1,0 +1,26 @@
+{
+  "style": "atlas-1",
+  "presentation_signature": "f38c50b4aec3a7626be7981ffa7df969f342326a3209f45b09203f0056d977ab",
+  "analysis_signature": "808ad6b299b251993616d99bf36428f8003992d139a4fdcdf9ab0cecc2b69485",
+  "basemap": {
+    "signature": "492a9c7a9e3a922ac1b561a39397ec778d9019c1fa0d4720bdb9285846e5bb68",
+    "source": "D:\\PycharmProjects\\isolated_open_access_land\\data\\regional_osm\\cheltenham-and-gloucester\\source.osm.pbf",
+    "source_sha256": "c9a768816404f733c78f7c86ea5d711ac0a7a0a11d76116384a30fdf3b3a5a1f",
+    "extract_version": 1,
+    "counts": {
+      "areas": 26536,
+      "lines": 159751,
+      "places": 443
+    },
+    "rejected": {
+      "areas": 0,
+      "lines": 0,
+      "places": 0
+    },
+    "attribution": "© OpenStreetMap contributors; ODbL 1.0",
+    "purpose": "Display context only. Paths and land cover do not establish access rights.",
+    "available": true,
+    "snapshot": "2026-10-03T20:20:50Z"
+  },
+  "geometry_note": "Original analysis is unchanged; map shapes are display representations."
+}
