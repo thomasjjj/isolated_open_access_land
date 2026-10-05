@@ -1,0 +1,26 @@
+{
+  "style": "atlas-1",
+  "presentation_signature": "3203d2a974267488a5ea3b0d34608221e042d790e5f69f99a41762a087ce711a",
+  "analysis_signature": "3408816bdcb6534a8fa57a89dd8c21ab5c14f314e9d783ae439199b3b15716a3",
+  "basemap": {
+    "signature": "9ec6dda3b784c8b24ef28f289630af939cae012cfe300a3b6115884e7776ae68",
+    "source": "D:\\PycharmProjects\\isolated_open_access_land\\data\\regional_osm\\isle-of-wight\\source.osm.pbf",
+    "source_sha256": "f4c0899bfb2a400727eae5a1a42fec31c6d9cfb9c63904e6c910af0d37765e8a",
+    "extract_version": 1,
+    "counts": {
+      "areas": 6006,
+      "lines": 31066,
+      "places": 61
+    },
+    "rejected": {
+      "areas": 0,
+      "lines": 0,
+      "places": 0
+    },
+    "attribution": "© OpenStreetMap contributors; ODbL 1.0",
+    "purpose": "Display context only. Paths and land cover do not establish access rights.",
+    "available": true,
+    "snapshot": "2026-10-03T20:20:50Z"
+  },
+  "geometry_note": "Original analysis is unchanged; map shapes are display representations."
+}

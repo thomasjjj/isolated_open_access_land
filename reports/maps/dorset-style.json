@@ -1,0 +1,26 @@
+{
+  "style": "atlas-1",
+  "presentation_signature": "8ac2c65db907a0944d3d3817fe8358567bd617011bd0891559b5dec035d56544",
+  "analysis_signature": "b77787ca7ea262ea7d2adb9ec3d24311314ed4df4a95b5af8b3770c2cdc0f07e",
+  "basemap": {
+    "signature": "b3222fb1edd12bdf3cea31f6a1fc12efb279b2c72400294d8fce47382ea6bd6c",
+    "source": "D:\\PycharmProjects\\isolated_open_access_land\\data\\regional_osm\\dorset\\source.osm.pbf",
+    "source_sha256": "e17c78098a90fd1fbb47e5b9d963b4476c973b04ea1bc31644cae3610158ba5a",
+    "extract_version": 1,
+    "counts": {
+      "areas": 22901,
+      "lines": 108385,
+      "places": 289
+    },
+    "rejected": {
+      "areas": 0,
+      "lines": 0,
+      "places": 0
+    },
+    "attribution": "© OpenStreetMap contributors; ODbL 1.0",
+    "purpose": "Display context only. Paths and land cover do not establish access rights.",
+    "available": true,
+    "snapshot": "2026-10-03T20:20:50Z"
+  },
+  "geometry_note": "Original analysis is unchanged; map shapes are display representations."
+}
