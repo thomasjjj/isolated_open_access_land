@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "isolated-open-access-land"
+version = "0.2.0"
+description = "Reproducible England-wide screening for isolated CRoW access land"
+requires-python = ">=3.12"
+dependencies = [
+    "geopandas>=1.0.1,<2",
+    "shapely>=2.0.7,<3",
+    "pyogrio>=0.11,<1",
+    "pyarrow>=18",
+    "osmium>=4.1,<5",
+    "requests>=2.32,<3",
+    "beautifulsoup4>=4.12,<5",
+    "matplotlib>=3.9,<4",
+    "filelock>=3.16,<4",
+]
+
+[project.scripts]
+access-islands = "access_islands.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "ruff>=0.11"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["access_islands"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

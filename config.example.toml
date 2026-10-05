@@ -1,0 +1,57 @@
+# All sources below are acquired automatically when no override is supplied.
+# Copy this file to config.toml and uncomment only the settings you need.
+[analysis]
+tolerance_m = 2
+tile_size_m = 20000
+context_buffer_m = 20000
+max_context_buffer_m = 80000
+min_candidate_area_m2 = 100  # smaller sites stay in the inventory and require geometry review
+include_section15 = true  # separate statutory access inventory; no GB route reimport
+
+# Local paths resolve relative to this TOML file. Specify layers for multi-layer files.
+# [sources.land]
+# path = "inputs/access_land.gpkg"
+# layer = "CRoW_Act_2000_Access_Layer"
+# id_field = "OBJECTID"
+# includes_section16 = true  # auto-detected from s16 for the current official combined layer
+
+# [sources.prow]
+# path = "inputs/rights_of_way.gpkg"
+# layer = "PRoW_Network_OGL"
+
+# [sources.section15]
+# path = "inputs/section15.gpkg"
+# layer = "Crow_Act_2000_Section_15_Land_England"
+
+# [sources.osm]
+# path = "inputs/great-britain.osm.pbf"
+
+# [sources.councils]
+# path = "inputs/councils.gpkg"
+# code_field = "LAD25CD"
+# name_field = "LAD25NM"
+
+# Optional downloaded source replacement:
+# [sources.land]
+# url = "https://example.org/access_land.gpkg.zip"
+
+# Explicit council updates replace compiled routes inside the authority boundary.
+# [[overrides]]
+# authority = "E06000046"
+# path = "inputs/isle_of_wight_prow.gpkg"
+# layer = "routes"
+
+# For reproducible custom coverage use JSON: {"missing_authorities": [{"code": "E06000002", "name": "Middlesbrough"}]}
+# [coverage]
+# path = "inputs/coverage.json"
+
+# Named areas may combine current ONS authorities. Names or codes are accepted.
+# [regions.my_region]
+# name = "My region"
+# authorities = ["Devon", "Torbay", "Plymouth"]
+# osm_slug = "devon"  # Geofabrik England regional extract
+
+# Alternatively use a local PBF and its actual coverage polygon:
+# [regions.my_region.osm]
+# path = "inputs/my_region.osm.pbf"
+# coverage_path = "inputs/my_region.poly"  # Geofabrik .poly, or a georeferenced vector polygon
